@@ -1,0 +1,614 @@
+---
+format: dashboard
+title: ""
+theme:
+  - darkly
+  - stravawattz.scss
+expandable: false
+---
+
+```{r script-preparation}
+suppressPackageStartupMessages({
+  
+  library(dplyr)
+  library(jsonlite)
+  library(httr)
+  library(ggplot2)
+  library(stringr)
+  library(tidyr)
+  library(purrr)
+  library(lubridate)
+  library(leaflet)
+  library(DT)
+  library(plotly)
+  library(openmeteo)
+  library(RColorBrewer)
+  library(clipr)
+  library(scales)
+  library(reshape2)
+  
+})
+load("stravawattz.RData")
+```
+
+# 2025
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r cycling-box-sessions-2025}
+#| content: valuebox
+list(
+  title = paste("Cycling Sessions"),
+  color = "warning",
+  value = paste0(length((df_all_distinct %>% filter(type == "Ride" & year(date) == 2025))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-distance-2025}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "warning",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-time-2025}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-elevation-2025}
+#| content: valuebox
+#| title: "Total Elevation"
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(elevation), na.rm = TRUE) < 1000, paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(elevation), na.rm = TRUE), 1), " m"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(elevation), na.rm = TRUE)/1000, 1), " km"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-cadence-2025}
+#| content: valuebox
+#| title: "Average Cadence"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_cad <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2025), mean(cadence, na.rm = TRUE))), "No data", paste0(round(avg_cad), " rpm"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-speed-2025}
+#| content: valuebox
+#| title: "Average Speed"
+list(
+  color = "warning",
+  value = ifelse(is.nan(as.numeric(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(speed), na.rm = TRUE), 1))), "No data", paste0(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2025) %>% pull(speed), na.rm = TRUE), 1), " km/h"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-hr-2025}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2025), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r cycling-daily-calendar-2025}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_ride_2025
+```
+
+```{r cycling-weekly-calendar-2025}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_ride_2025
+```
+
+```{r cycling-monthly-calendar-2025}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_ride_2025
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_elevation_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Speed"
+plot_speed_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_ride_2025
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_ride_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_cumul_elevation_ride_2025
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_ride_2025
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_ride_2025
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_ride_2025
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_ride_2025
+```
+
+# 2024
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r cycling-box-sessions-2024}
+#| content: valuebox
+list(
+  title = paste("Cycling Sessions"),
+  color = "warning",
+  value = paste0(length((df_all_distinct %>% filter(type == "Ride" & year(date) == 2024))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-distance-2024}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "warning",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-time-2024}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-elevation-2024}
+#| content: valuebox
+#| title: "Total Elevation"
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(elevation), na.rm = TRUE) < 1000, paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(elevation), na.rm = TRUE), 1), " m"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(elevation), na.rm = TRUE)/1000, 1), " km"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-cadence-2024}
+#| content: valuebox
+#| title: "Average Cadence"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_cad <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2024), mean(cadence, na.rm = TRUE))), "No data", paste0(round(avg_cad), " rpm"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-speed-2024}
+#| content: valuebox
+#| title: "Average Speed"
+list(
+  color = "warning",
+  value = ifelse(is.nan(as.numeric(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(speed), na.rm = TRUE), 1))), "No data", paste0(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2024) %>% pull(speed), na.rm = TRUE), 1), " km/h"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-hr-2024}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2024), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r cycling-daily-calendar-2024}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_ride_2024
+```
+
+```{r cycling-weekly-calendar-2024}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_ride_2024
+```
+
+```{r cycling-monthly-calendar-2024}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_ride_2024
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_elevation_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Speed"
+plot_speed_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_ride_2024
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_ride_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_cumul_elevation_ride_2024
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_ride_2024
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_ride_2024
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_ride_2024
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_ride_2024
+```
+
+# 2023
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r cycling-box-sessions-2023}
+#| content: valuebox
+list(
+  title = paste("Cycling Sessions"),
+  color = "warning",
+  value = paste0(length((df_all_distinct %>% filter(type == "Ride" & year(date) == 2023))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-distance-2023}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "warning",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-time-2023}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-elevation-2023}
+#| content: valuebox
+#| title: "Total Elevation"
+list(
+  color = "warning",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(elevation), na.rm = TRUE) < 1000, paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(elevation), na.rm = TRUE), 1), " m"), paste0(round(sum(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(elevation), na.rm = TRUE)/1000, 1), " km"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-cadence-2023}
+#| content: valuebox
+#| title: "Average Cadence"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_cad <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2023), mean(cadence, na.rm = TRUE))), "No data", paste0(round(avg_cad), " rpm"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-speed-2023}
+#| content: valuebox
+#| title: "Average Speed"
+list(
+  color = "warning",
+  value = ifelse(is.nan(as.numeric(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(speed), na.rm = TRUE), 1))), "No data", paste0(round(mean(df_all_distinct %>% filter(type == "Ride" & year(date) == 2023) %>% pull(speed), na.rm = TRUE), 1), " km/h"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r cycling-box-hr-2023}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "warning",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Ride", year(date) == 2023), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r cycling-daily-calendar-2023}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_ride_2023
+```
+
+```{r cycling-weekly-calendar-2023}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_ride_2023
+```
+
+```{r cycling-monthly-calendar-2023}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_ride_2023
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_elevation_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Speed"
+plot_speed_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_ride_2023
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_ride_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Elevation"
+plot_cumul_elevation_ride_2023
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_ride_2023
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_ride_2023
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_ride_2023
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_ride_2023
+```

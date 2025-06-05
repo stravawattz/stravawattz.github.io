@@ -1,0 +1,34 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "STRAVAWATTZ"
+  favicon: stravawattz.png
+  search: false
+  navbar:
+    logo: stravawattz.png
+    left:
+      - text: "Home"
+        href: home.qmd
+      - text: "Running"
+        href: running.qmd
+      - text: "Cycling"
+        href: cycling.qmd
+      - text: "Swimming"
+        href: swimming.qmd
+      - text: "Training Load"
+        href: training.qmd
+    right:
+      - icon: "github"
+        href: "https://www.github.com"
+      - icon: "cup-hot-fill"
+        href: "https://www.github.com"
+
+format:
+  html:
+    theme:
+     - darkly
+     - stravawattz.scss
+    toc: true
+

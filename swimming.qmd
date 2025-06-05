@@ -1,0 +1,545 @@
+---
+format: dashboard
+title: ""
+theme:
+  - darkly
+  - stravawattz.scss
+expandable: false
+---
+
+```{r script-preparation}
+suppressPackageStartupMessages({
+  
+  library(dplyr)
+  library(jsonlite)
+  library(httr)
+  library(ggplot2)
+  library(stringr)
+  library(tidyr)
+  library(purrr)
+  library(lubridate)
+  library(leaflet)
+  library(DT)
+  library(plotly)
+  library(openmeteo)
+  library(RColorBrewer)
+  library(clipr)
+  library(scales)
+  library(reshape2)
+  
+})
+load("stravawattz.RData")
+```
+
+# 2025
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r swimming-box-sessions-2025}
+#| content: valuebox
+list(
+  title = paste("Swimming Sessions"),
+  color = "info",
+  value = paste0(length((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-distance-2025}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "info",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-time-2025}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "info",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-lengths-2025}
+#| content: valuebox
+#| title: "Total Lengths (50m)"
+list(
+  color = "info",
+  value = ifelse((tot_len <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2025), sum(distance, na.rm = TRUE))) == 0, "No data", paste0(round(tot_len/50), " lengths"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-pace-2025}
+#| content: valuebox
+#| title: "Average Pace"
+list(
+  color = "info",
+  value = ifelse(is.nan(as.numeric(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(pace))/ 10, na.rm = TRUE)), ":", round((pace %% 1) * 60))), "No data",paste0(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% pull(pace))/ 10, na.rm = TRUE)), ":", ifelse(round((pace %% 1) * 60) < 10, paste0("0", round((pace %% 1) * 60)), round((pace %% 1) * 60)), "/100m"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-hr-2025}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "info",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2025), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r swimming-daily-calendar-2025}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_swim_2025
+```
+
+```{r swimming-weekly-calendar-2025}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_swim_2025
+```
+
+```{r swimming-monthly-calendar-2025}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_swim_2025
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_swim_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_swim_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Pace"
+plot_pace_swim_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_swim_2025
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_swim_2025
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_swim_2025
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_swim_2025
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_swim_2025
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_swim_2025
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_swim_2025
+```
+
+# 2024
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r swimming-box-sessions-2024}
+#| content: valuebox
+list(
+  title = paste("Swimming Sessions"),
+  color = "info",
+  value = paste0(length((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-distance-2024}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "info",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-time-2024}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "info",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-lengths-2024}
+#| content: valuebox
+#| title: "Total Lengths (50m)"
+list(
+  color = "info",
+  value = ifelse((tot_len <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2024), sum(distance, na.rm = TRUE))) == 0, "No data", paste0(round(tot_len/50), " lengths"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-pace-2024}
+#| content: valuebox
+#| title: "Average Pace"
+list(
+  color = "info",
+  value = ifelse(is.nan(as.numeric(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(pace))/ 10, na.rm = TRUE)), ":", round((pace %% 1) * 60))), "No data",paste0(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% pull(pace))/ 10, na.rm = TRUE)), ":", ifelse(round((pace %% 1) * 60) < 10, paste0("0", round((pace %% 1) * 60)), round((pace %% 1) * 60)), "/100m"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-hr-2024}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "info",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2024), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r swimming-daily-calendar-2024}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_swim_2024
+```
+
+```{r swimming-weekly-calendar-2024}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_swim_2024
+```
+
+```{r swimming-monthly-calendar-2024}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_swim_2024
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_swim_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_swim_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Pace"
+plot_pace_swim_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_swim_2024
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_swim_2024
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_swim_2024
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_swim_2024
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_swim_2024
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_swim_2024
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_swim_2024
+```
+
+# 2023
+
+## Row {height="100%"}
+
+### Column {width="14%"}
+
+#### Row {height="20%"}
+
+```{r swimming-box-sessions-2023}
+#| content: valuebox
+list(
+  title = paste("Swimming Sessions"),
+  color = "info",
+  value = paste0(length((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023))$id), " sessions")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-distance-2023}
+#| content: valuebox
+#| title: "Total Distance"
+list(
+  color = "info",
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-time-2023}
+#| content: valuebox
+#| title: "Total Duration"
+#| padding: 0px
+list(
+  color = "info",
+  value = ifelse(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 >= 300, paste0(round(floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60), 0),"h ", ifelse(round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)<10,paste0("0",round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)),round(((sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60) - floor(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60 / 60)) * 60, 0)), "min"), paste0(round(sum(df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(time), na.rm = TRUE) / 60, 0), "min"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-lengths-2023}
+#| content: valuebox
+#| title: "Total Lengths (50m)"
+list(
+  color = "info",
+  value = ifelse((tot_len <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2023), sum(distance, na.rm = TRUE))) == 0, "No data", paste0(round(tot_len/50), " lengths"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-pace-2023}
+#| content: valuebox
+#| title: "Average Pace"
+list(
+  color = "info",
+  value = ifelse(is.nan(as.numeric(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(pace))/ 10, na.rm = TRUE)), ":", round((pace %% 1) * 60))), "No data",paste0(floor(pace <- mean((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% pull(pace))/ 10, na.rm = TRUE)), ":", ifelse(round((pace %% 1) * 60) < 10, paste0("0", round((pace %% 1) * 60)), round((pace %% 1) * 60)), "/100m"))
+)
+```
+
+#### Row {height="20%"}
+
+```{r swimming-box-hr-2023}
+#| content: valuebox
+#| title: "Average HR"
+list(
+  color = "info",
+  value = ifelse(is.nan(avg_hr <- with(df_all_distinct %>% filter(type == "Swim", year(date) == 2023), sum(speed * hr, na.rm = TRUE) / sum(speed, na.rm = TRUE))), "No data", paste0(round(avg_hr), " bpm"))
+)
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Calendar"}
+
+```{r swimming-daily-calendar-2023}
+#| padding: 0px
+#| title: "Daily"
+plot_calendar_daily_swim_2023
+```
+
+```{r swimming-weekly-calendar-2023}
+#| padding: 0px
+#| title: "Weekly"
+plot_calendar_weekly_swim_2023
+```
+
+```{r swimming-monthly-calendar-2023}
+#| padding: 0px
+#| title: "Monthly"
+plot_calendar_monthly_swim_2023
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Rankings"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_distance_swim_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_time_swim_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Pace"
+plot_pace_swim_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "HR"
+plot_hr_swim_2023
+```
+
+### Column {width="43%"}
+
+#### Row {height="25%"}
+
+##### Column {.tabset title="Cumulative"}
+
+```{r}
+#| padding: 0px
+#| title: "Distance"
+plot_cumul_distance_swim_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "Time"
+plot_cumul_time_swim_2023
+```
+
+#### Row {height="75%"}
+
+##### Column {.tabset title="Maps"}
+
+```{r}
+#| title: "Latest"
+#| padding: 0px 
+plot_map_sep_last_swim_2023
+```
+
+```{r}
+#| title: "Fastest"
+#| padding: 0px 
+plot_map_sep_fast_swim_2023
+```
+
+```{r}
+#| title: "Longest"
+#| padding: 0px 
+plot_map_sep_long_swim_2023
+```
+
+```{r}
+#| title: "All"
+#| padding: 0px 
+plot_map_heat_swim_2023
+```
