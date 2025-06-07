@@ -156,6 +156,12 @@ plot_pace_swim_2025
 plot_hr_swim_2025
 ```
 
+```{r}
+#| padding: 0px
+#| title: "TRIMP"
+plot_trimp_swim_2025
+```
+
 ### Column {width="43%"}
 
 #### Row {height="25%"}
@@ -327,6 +333,12 @@ plot_pace_swim_2024
 plot_hr_swim_2024
 ```
 
+```{r}
+#| padding: 0px
+#| title: "TRIMP"
+plot_trimp_swim_2024
+```
+
 ### Column {width="43%"}
 
 #### Row {height="25%"}
@@ -496,6 +508,12 @@ plot_pace_swim_2023
 #| padding: 0px
 #| title: "HR"
 plot_hr_swim_2023
+```
+
+```{r}
+#| padding: 0px
+#| title: "TRIMP"
+plot_trimp_swim_2023
 ```
 
 ### Column {width="43%"}
