@@ -55,7 +55,7 @@ list(
 #| title: "Total Distance"
 list(
   color = "info",
-  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2025) %>% select(distance)), na.rm = TRUE) / 1000, 0), " km")
 )
 ```
 
@@ -232,7 +232,7 @@ list(
 #| title: "Total Distance"
 list(
   color = "info",
-  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2024) %>% select(distance)), na.rm = TRUE) / 1000, 0), " km")
 )
 ```
 
@@ -409,7 +409,7 @@ list(
 #| title: "Total Distance"
 list(
   color = "info",
-  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% select(distance)), na.rm = TRUE) / 1000, 1), " km")
+  value = paste0(round(sum((df_all_distinct %>% filter(type == "Swim" & year(date) == 2023) %>% select(distance)), na.rm = TRUE) / 1000, 0), " km")
 )
 ```
 
