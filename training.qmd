@@ -116,8 +116,20 @@ plot_acwr_projection_0_2025
 
 ```{r acwr-expected-t1-2025}
 #| padding: 0px
-#| title: "Tomorrow"
+#| title: "T+1"
 plot_acwr_projection_1_2025
+```
+
+```{r acwr-expected-t2-2025}
+#| padding: 0px
+#| title: "T+2"
+plot_acwr_projection_2_2025
+```
+
+```{r acwr-expected-t3-2025}
+#| padding: 0px
+#| title: "T+3"
+plot_acwr_projection_3_2025
 ```
 
 # 2024
@@ -205,8 +217,20 @@ plot_acwr_projection_0_2024
 
 ```{r acwr-expected-t1-2024}
 #| padding: 0px
-#| title: "Tomorrow"
+#| title: "T+1"
 plot_acwr_projection_1_2024
+```
+
+```{r acwr-expected-t2-2024}
+#| padding: 0px
+#| title: "T+2"
+plot_acwr_projection_2_2024
+```
+
+```{r acwr-expected-t3-2024}
+#| padding: 0px
+#| title: "T+3"
+plot_acwr_projection_3_2024
 ```
 
 # 2023
@@ -294,6 +318,18 @@ plot_acwr_projection_0_2023
 
 ```{r acwr-expected-t1-2023}
 #| padding: 0px
-#| title: "Tomorrow"
+#| title: "T+1"
 plot_acwr_projection_1_2023
+```
+
+```{r acwr-expected-t2-2023}
+#| padding: 0px
+#| title: "T+2"
+plot_acwr_projection_2_2023
+```
+
+```{r acwr-expected-t3-2023}
+#| padding: 0px
+#| title: "T+3"
+plot_acwr_projection_3_2023
 ```
