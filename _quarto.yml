@@ -20,7 +20,7 @@ website:
       - text: "Training Load"
         href: training.qmd
     right:
-      - text: "Last update: 07/06/25 at 23:29"
+      - text: "Last update: XXXXXXXXXX"
       - icon: "github"
         href: "https://www.github.com"
       - icon: "cup-hot-fill"
