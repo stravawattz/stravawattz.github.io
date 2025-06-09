@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Strava Summary",
+    "section": "",
+    "text": "# Hello from Quarto\nThis is a test deployment.\n\nSys.time()\n\n[1] \"2025-06-09 20:44:44 UTC\""
+  }
+]
